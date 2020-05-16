@@ -1,7 +1,10 @@
 import ipaddress, time
 from flask import Response, request
 from functools import wraps
-MASK =  int(ipaddress.IPv4Address("255.255.255.0")) 
+import toml
+
+cfg = toml.load('./app.toml')
+MASK =  int(ipaddress.IPv4Address(cfg["ip"]["mask"])) 
 GSTORAGE = {} # роут: {подсеть: [разы, время первого обращения за dt]}
 GBANNED = {} # словарь забаненых подсетей
 
@@ -15,14 +18,14 @@ def limit(times, sec, bantime):
             banned = GBANNED.setdefault(rule, {}) #лучше заменить 
             ip = parse_ip()
             if not ip: 
-                return Response("{'err':'header error'}", status=401, mimetype='application/json')
+                return Response('{"err":"header error"}', status=401, mimetype='application/json')
             subnet = ip & MASK 
             if ban_check(subnet, banned): 
-                return Response("{'err':'Too many requests'}", status=429, mimetype='application/json')
+                return Response('{"err":"Too many requests"}', status=429, mimetype='application/json')
             if limit_check(times, sec, subnet, bantime, banned, storage):
                 value = func(*args, **kwargs) #вызываем хендлер
             else: #возвращаем ответ для фласка, с кодом 429
-                value = Response("{'err':'Too many requests'}", status=429, mimetype='application/json')
+                value = Response('{"err":"Too many requests"}', status=429, mimetype='application/json')
             return value
         return wrapper_limit
     return decorator_limit
@@ -77,7 +80,7 @@ def limit_reset():
         return True
 
 def parse_ip():
-    raw_ip = request.headers.get("X-Forwarded-For")
+    raw_ip = request.headers.get('X-Forwarded-For')
     if not raw_ip: #хедера нет
         return False
     try:

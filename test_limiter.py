@@ -18,7 +18,7 @@ def test_ban(client):
         assert b"I love dogs" in rv.data
     for x in range(100):
         rv = client.get('/', headers = {'X-Forwarded-For': '31.31.31.31'})
-        assert b"{'err':'Too many requests'}" in rv.data
+        assert b'Too many requests' in rv.data
     for x in range(100): 
         rv = client.get('/', headers = {'X-Forwarded-For': f'32.32.32.{rnd.randint(1, 255)}'})
         assert b"I love dogs" in rv.data

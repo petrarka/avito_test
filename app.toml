@@ -1,0 +1,7 @@
+[ip]
+mask = "255.255.255.0" 
+
+[slow]
+times = 100
+seconds = 60
+bantime = 180
